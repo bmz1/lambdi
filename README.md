@@ -1,4 +1,4 @@
-# `bmz_1/lambdi`
+# `@bmz_1/lambdi`
 
 Ultra‑light **dependency‑injection container** for AWS Lambda — zero cold‑start tax, zero runtime dependencies.
 
@@ -31,7 +31,7 @@ Ultra‑light **dependency‑injection container** for AWS Lambda — zero cold
 ## Installation
 
 ```bash
-npm install bmz_1/lambdi
+npm install @bmz_1/lambdi
 ```
 
 > Node 20+ is required (matches current AWS Lambda runtimes).
@@ -41,7 +41,7 @@ npm install bmz_1/lambdi
 ## Quick start
 
 ```ts
-import { container, token } from 'bmz_1/lambdi';
+import { container, token } from '@bmz_1/lambdi';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 // create a typed token once – no string collisions
@@ -74,7 +74,7 @@ export const handler = async () => {
 ## Example: Scoped per‑request objects
 
 ```ts
-import { container, token } from 'bmz_1/lambdi';
+import { container, token } from '@bmz_1/lambdi';
 import { v4 as uuid } from 'uuid';
 
 const REQUEST_ID = token<string>('request‑id');
@@ -98,7 +98,7 @@ async function doWork(event, scope) {
 
 ```ts
 import { beforeEach, afterEach, it, expect } from 'vitest';
-import { Container, token } from 'bmz_1/lambdi';
+import { Container, token } from '@bmz_1/lambdi';
 
 const DUMMY = token<number>('dummy');
 let c: Container;
@@ -122,4 +122,4 @@ it('returns same instance', async () => {
 
 ## License
 
-MIT © 2025 BMZ Software Engineering
+MIT © 2025 BMZ
