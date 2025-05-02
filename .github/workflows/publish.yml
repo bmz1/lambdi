@@ -67,6 +67,7 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
+          scope: '@bmz_1'
 
       - name: Install deps & build
         run: |
