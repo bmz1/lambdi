@@ -1,0 +1,41 @@
+{
+  "name": "@bmz_1/lambdi",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.cjs"
+  },
+  "description": "Ultra‑light DI, env and secret helpers for AWS Lambda with zero cold‑start tax.",
+  "keywords": [
+    "aws",
+    "lambda",
+    "di",
+    "dependency-injection",
+    "serverless",
+    "secrets-manager",
+    "env"
+  ],
+  "author": "bmz",
+  "license": "MIT",
+  "peerDependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.799.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs && tsc --project tsconfig.json",
+    "prepublishOnly": "npm run build",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@vitest/coverage-v8": "^3.1.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}
