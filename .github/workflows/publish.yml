@@ -1,0 +1,79 @@
+# Continuous Integration & Release workflow for bmz_1/lambdi
+# -----------------------------------------------------------------------------
+# • Runs Vitest on every push / PR and on GitHub Release events
+# • Publishes to npm *only* when a Release is published ("vX.Y.Z" tag)
+#   and the version in package.json matches the tag.
+# • Requires repo secret `NPM_TOKEN` with "publish" permissions.
+# -----------------------------------------------------------------------------
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  release:
+    types: [ published ]
+
+jobs:
+  test:
+    name: 🧪 Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # For release events, check out the tagged commit
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --run
+
+  publish:
+    name: 🚀 Publish to npm
+    needs: test
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Verify package version matches tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Tag version:   $TAG"
+          echo "Package.json:  $VERSION"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "❌  Version mismatch – bump package.json before releasing." && exit 1
+          fi
+
+      - name: Set up Node.js 20 with npm registry auth
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install deps & build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --ignore-scripts --provenance
