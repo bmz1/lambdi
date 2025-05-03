@@ -1,8 +1,48 @@
 # `@bmz_1/lambdi`
 
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen?style=flat-square)
+
 Ultra‑light **dependency‑injection container** for AWS Lambda — zero cold‑start tax, zero runtime dependencies.
 
 > **λ + DI = lambdi** – pronounced “lam‑dee”.
+
+---
+
+## 📦 Bundle sizes (ESM only)
+
+```
+Build complete: dist/index.{mjs}, dist/container.js, dist/loadenv.js
+  • dist/index.mjs:    17.3 KB
+  • dist/container.js: 598 B
+  • dist/loadenv.js:   16.8 KB
+```
+
+---
+
+## 📦 ESM-only exports
+
+All entrypoints are ESM:
+
+```json
+"exports": {
+  ".": "./dist/index.mjs",
+  "./di": "./dist/container.js",
+  "./loadenv": "./dist/loadenv.js"
+}
+```
+
+**Import examples:**
+
+```js
+// Main entry (everything)
+import { container, token, loadenv, envSchema } from '@bmz_1/lambdi';
+
+// DI only
+import { container, token } from '@bmz_1/lambdi/di';
+
+// Env helpers only
+import { loadenv, envSchema } from '@bmz_1/lambdi/loadenv';
+```
 
 ---
 
@@ -54,6 +94,43 @@ export const handler = async () => {
   /* … use ddb … */
   return { ok: true };
 };
+```
+
+---
+
+## Environment variable validation (`loadenv`)
+
+Validate and type-check your environment variables at startup using Zod Mini schemas.
+
+- Throws if any required variable is missing or invalid.
+- Returns a fully typed, validated object.
+- Works with both main and subpath imports.
+
+**Usage:**
+
+```ts
+import { loadenv, envSchema } from '@bmz_1/lambdi';
+// or: import { loadenv, envSchema } from '@bmz_1/lambdi/loadenv';
+import * as z from '@zod/mini';
+
+const schema = envSchema({
+  DATABASE_URL: z.string(),
+  PORT: z.string().optional(),
+  DEBUG: z.boolean().optional(),
+});
+
+const env = loadenv(schema);
+// env.DATABASE_URL is string
+// env.PORT is string | undefined
+// env.DEBUG is boolean | undefined
+
+console.log('Database URL:', env.DATABASE_URL);
+```
+
+You can also pass a custom source object (e.g., for tests):
+
+```ts
+const env = loadenv(schema, { DATABASE_URL: 'sqlite://:memory:' });
 ```
 
 ---
