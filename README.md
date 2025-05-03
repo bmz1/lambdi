@@ -2,9 +2,32 @@
 
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen?style=flat-square)
 
-Ultra‑light **dependency‑injection container** for AWS Lambda — zero cold‑start tax, zero runtime dependencies.
+Ultra‑light **dependency‑injection container** and **environment variable loader/validator** for AWS Lambda — zero cold‑start tax, zero runtime dependencies.
 
 > **λ + DI = lambdi** – pronounced “lam‑dee”.
+
+---
+
+## Packages
+
+- **`container`**: Ultra-light, type-safe dependency injection for AWS Lambda (and beyond)
+- **`loadenv`**: Fast, type-safe environment variable validation using [Zod Mini](https://github.com/colinhacks/zod-mini)
+
+---
+
+## Table of Contents
+
+- [Bundle sizes](#-bundle-sizes-esm-only)
+- [ESM-only exports](#-esm-only-exports)
+- [Why lambdi?](#why-lambdi)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick start: Dependency Injection (`container`)](#quick-start)
+- [Environment variable validation (`loadenv`)](#environment-variable-validation-loadenv)
+- [API](#api)
+- [Example: Scoped per-request objects](#example-scoped-per-request-objects)
+- [Testing pattern](#testing-pattern)
+- [License](#license)
 
 ---
 
@@ -21,7 +44,7 @@ Build complete: dist/index.{mjs}, dist/container.js, dist/loadenv.js
 
 ## 📦 ESM-only exports
 
-All entrypoints are ESM:
+All entrypoints are ESM, with subpath exports for each module:
 
 ```json
 "exports": {
@@ -37,10 +60,10 @@ All entrypoints are ESM:
 // Main entry (everything)
 import { container, token, loadenv, envSchema } from '@bmz_1/lambdi';
 
-// DI only
+// Dependency Injection only
 import { container, token } from '@bmz_1/lambdi/di';
 
-// Env helpers only
+// Environment helpers only
 import { loadenv, envSchema } from '@bmz_1/lambdi/loadenv';
 ```
 
@@ -78,7 +101,7 @@ npm install @bmz_1/lambdi
 
 ---
 
-## Quick start
+## Quick start: Dependency Injection (`container`)
 
 ```ts
 import { container, token } from '@bmz_1/lambdi';
@@ -98,7 +121,7 @@ export const handler = async () => {
 
 ---
 
-## Environment variable validation (`loadenv`)
+## Quick start: Environment variable validation (`loadenv`)
 
 Validate and type-check your environment variables at startup using Zod Mini schemas.
 
@@ -137,6 +160,8 @@ const env = loadenv(schema, { DATABASE_URL: 'sqlite://:memory:' });
 
 ## API
 
+### Dependency Injection (`container`)
+
 | Item                                       | Description                                      |
 | ------------------------------------------ | ------------------------------------------------ |
 | `container`                                | Process‑wide singleton `Container` instance      |
@@ -145,6 +170,13 @@ const env = loadenv(schema, { DATABASE_URL: 'sqlite://:memory:' });
 | `container.createScope()`                  | Child container inheriting parent singletons     |
 | `container.disposeAll()`                   | Run disposers, clear cache (useful in tests)     |
 | `FactoryOptions.dispose(value)`            | Optional disposer registered per singleton       |
+
+### Environment Variable Loader (`loadenv`)
+
+| Item                      | Description                                                   |
+|---------------------------|---------------------------------------------------------------|
+| `loadenv(schema, [src])`  | Validate and load env vars from `process.env` or custom src   |
+| `envSchema(defs)`         | Build a Zod Mini schema for your environment variables         |
 
 ---
 
