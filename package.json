@@ -1,6 +1,6 @@
 {
   "name": "@bmz_1/lambdi",
-  "version": "1.0.4",
+  "version": "1.1.1",
   "type": "module",
   "types": "dist/index.d.ts",
   "typesVersions": {
