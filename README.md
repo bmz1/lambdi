@@ -101,7 +101,7 @@ npm install @bmz_1/lambdi
 
 ---
 
-## Quick start: Dependency Injection (`container`)
+## Quick start: Dependency Injection (`container`)
 
 ```ts
 import { container, token } from '@bmz_1/lambdi';
@@ -110,9 +110,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 // create a typed token once – no string collisions
 const DDB = token<DynamoDBClient>('ddb');
 
+// Register dependencies at startup (cold start)
+container.register(DDB, () => new DynamoDBClient({ region: 'us-east-1' }));
+
 export const handler = async () => {
-  // heavy client built once per execution environment
-  const ddb = await container.resolve(DDB, () => new DynamoDBClient({ region: 'us-east-1' }));
+  // Resolve previously registered dependency - cached for warm invocations
+  const ddb = await container.resolve(DDB);
 
   /* … use ddb … */
   return { ok: true };
@@ -162,14 +165,16 @@ const env = loadenv(schema, { DATABASE_URL: 'sqlite://:memory:' });
 
 ### Dependency Injection (`container`)
 
-| Item                                       | Description                                      |
-| ------------------------------------------ | ------------------------------------------------ |
-| `container`                                | Process‑wide singleton `Container` instance      |
-| `token<T>(description)`                    | Create an `InjectionToken<T>` (unique `symbol`)  |
-| `container.resolve(token, factory, opts?)` | Lazily build or retrieve a singleton; async‑safe |
-| `container.createScope()`                  | Child container inheriting parent singletons     |
-| `container.disposeAll()`                   | Run disposers, clear cache (useful in tests)     |
-| `FactoryOptions.dispose(value)`            | Optional disposer registered per singleton       |
+| Item                                    | Description                                       |
+| --------------------------------------- | ------------------------------------------------- |
+| `container`                             | Process‑wide singleton `Container` instance       |
+| `token<T>(description)`                 | Create an `InjectionToken<T>` (unique `symbol`)   |
+| `container.register(token, factory, options?)` | Register a factory function for a token          |
+| `container.registerValue(token, value, options?)` | Register an existing value for a token         |
+| `container.resolve(token)`              | Resolve a previously registered dependency        |
+| `container.createScope()`               | Child container inheriting parent singletons      |
+| `container.disposeAll()`                | Run disposers, clear cache (useful in tests)      |
+| `FactoryOptions.dispose(value)`         | Optional disposer registered per singleton        |
 
 ### Environment Variable Loader (`loadenv`)
 
@@ -190,13 +195,13 @@ const REQUEST_ID = token<string>('request‑id');
 
 export const handler = async (event) => {
   const scope = container.createScope();
-  await scope.resolve(REQUEST_ID, () => uuid());
-
+  scope.register(REQUEST_ID, () => uuid());
+  
   return doWork(event, scope);
 };
 
 async function doWork(event, scope) {
-  const reqId = await scope.resolve(REQUEST_ID, () => 'should‑never‑happen');
+  const reqId = await scope.resolve(REQUEST_ID);
   console.log('request', reqId, event.body);
 }
 ```
@@ -221,8 +226,9 @@ afterEach(async () => {
 });
 
 it('returns same instance', async () => {
-  const value = await c.resolve(DUMMY, () => 42);
-  const again = await c.resolve(DUMMY, () => 0);
+  c.register(DUMMY, () => 42);
+  const value = await c.resolve(DUMMY);
+  const again = await c.resolve(DUMMY);
   expect(again).toBe(value);
 });
 ```
